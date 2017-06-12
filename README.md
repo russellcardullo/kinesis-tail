@@ -15,3 +15,5 @@ Currently it's useful to quickly run things like `tail | grep` patterns on activ
 
 AWS Credentials should be configured under `~/.aws/credentials` in the same manner you would if using the `aws cli` tools.
 For more information see: https://github.com/aws/aws-sdk-go#configuring-credentials
+
+The region should be specified using the `AWS_REGION` environment variable.  If no region is specified the tool will default to `us-east-1`.

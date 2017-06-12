@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"os"
@@ -74,6 +75,22 @@ func readStream(messages chan string, svc *kinesis.Kinesis, streamName string, s
 	}
 }
 
+func mkKinesisService() (*kinesis.Kinesis, error) {
+	conf := aws.NewConfig()
+
+	if os.Getenv("AWS_REGION") == "" {
+		conf = conf.WithRegion(endpoints.UsEast1RegionID)
+	}
+
+	sess, err := session.NewSession(conf)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := kinesis.New(sess)
+	return svc, nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: kinesis-tail [stream-name]\n")
@@ -81,7 +98,11 @@ func main() {
 	}
 	streamName := os.Args[1]
 
-	svc := kinesis.New(session.New(), aws.NewConfig().WithRegion("us-east-1"))
+	svc, err := mkKinesisService()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 
 	shardIds, err := getShards(svc, streamName)
 	if err != nil {
